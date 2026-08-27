@@ -1,0 +1,114 @@
+import java.text.SimpleDateFormat
+
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.mssh"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.mssh"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "com.github.mwiede:jsch:0.2.23"
+}
+
+def archiveRootDir = rootProject.layout.projectDirectory.dir("archive")
+def archiveProductName = rootProject.name.replaceAll(/[^A-Za-z0-9._-]/, "")
+
+if (!archiveProductName) {
+    archiveProductName = "app"
+}
+
+def archiveDate = {
+    new SimpleDateFormat("yyyyMMdd").format(new Date())
+}
+
+def nextArchiveSequence = {
+    def archiveRoot = archiveRootDir.asFile
+    def maxSequence = 0
+
+    archiveRoot.listFiles()?.each { file ->
+        def matcher = file.name =~ /^(\d{4})-/
+
+        if (matcher.find()) {
+            maxSequence = Math.max(maxSequence, matcher.group(1).toInteger())
+        }
+    }
+
+    maxSequence + 1
+}
+
+def copyApksToArchive = { String variantName, File apkDir ->
+    if (!apkDir.exists()) {
+        throw new GradleException("No APK directory found for ${variantName}: ${apkDir}")
+    }
+
+    def apkFiles = fileTree(dir: apkDir, include: ["*.apk"]).files
+        .findAll { it.isFile() }
+        .sort { it.name }
+
+    if (apkFiles.isEmpty()) {
+        throw new GradleException("No APK files found for ${variantName}: ${apkDir}")
+    }
+
+    def archiveId = String.format("%04d-%s-%s", nextArchiveSequence(), archiveDate(), archiveProductName)
+    def targetDir = archiveRootDir.dir(archiveId).asFile
+
+    if (!targetDir.mkdirs() && !targetDir.exists()) {
+        throw new GradleException("Unable to create archive directory: ${targetDir}")
+    }
+
+    apkFiles.each { apkFile ->
+        def apkBaseName = apkFile.name.replaceFirst(/\.apk$/, "")
+        def targetFileName = apkFiles.size() == 1
+            ? "${archiveId}-${variantName}.apk"
+            : "${archiveId}-${variantName}-${apkBaseName}.apk"
+
+        copy {
+            from apkFile
+            into targetDir
+            rename { targetFileName }
+        }
+    }
+
+    logger.lifecycle("Archived ${variantName} APK to ${targetDir}")
+}
+
+android.applicationVariants.all { variant ->
+    def variantName = variant.name
+    def capitalizedVariantName = variantName.capitalize()
+    def apkDirProvider = layout.buildDirectory.dir("outputs/apk/${variantName}")
+    def archiveTask = tasks.register("archive${capitalizedVariantName}Apk") {
+        group = "archive"
+        description = "Archives the ${variantName} APK under ${archiveRootDir.asFile}."
+        mustRunAfter variant.assembleProvider
+
+        doLast {
+            copyApksToArchive(variantName, apkDirProvider.get().asFile)
+        }
+    }
+
+    variant.assembleProvider.configure {
+        finalizedBy archiveTask
+    }
+}
+
+tasks.register("archiveApk") {
+    group = "archive"
+    description = "Builds and archives the debug APK."
+    dependsOn "assembleDebug"
+}

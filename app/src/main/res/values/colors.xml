@@ -1,0 +1,11 @@
+<resources>
+    <color name="mssh_black">#10110F</color>
+    <color name="mssh_monitor">#171915</color>
+    <color name="mssh_yellow">#EFD98A</color>
+    <color name="mssh_green">#B6D48A</color>
+    <color name="mssh_line">#34382D</color>
+    <color name="mssh_surface">#20231D</color>
+    <color name="mssh_form_background">#4A4D46</color>
+    <color name="mssh_form_label">#B89434</color>
+    <color name="mssh_text">#F4F0DC</color>
+</resources>

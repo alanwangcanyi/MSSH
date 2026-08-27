@@ -1,0 +1,17 @@
+.DS_Store
+*.log
+*.tmp
+*.swp
+
+.gradle/
+build/
+app/build/
+
+gradle-*.zip
+
+archive/*
+!archive/README.md
+
+.idea/
+*.iml
+local.properties
