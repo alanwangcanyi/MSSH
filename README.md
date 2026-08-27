@@ -18,6 +18,7 @@ MSSH 是一个面向手机竖屏使用的 Android SSH 命令行应用。目标�
 - `docs/ui-flow.md`：手机竖屏 UI 流程和页面职责。
 - `docs/logging.md`：Shell 输出日志的开关、目录和命名规则。
 - `docs/local-cmd.md`：本地 CMD 命令执行能力、限制和工作目录规则。
+- `LICENSE`：MIT 开源协议原文。
 - `archive/README.md`：构建产物归档目录说明。
 
 ## 代码架构
@@ -43,6 +44,10 @@ MSSH 是一个面向手机竖屏使用的 Android SSH 命令行应用。目标�
 - `gradle-*.zip` 等本地下载包。
 - `archive/` 下的 APK 归档产物，保留 `archive/README.md` 说明文件。
 - `.DS_Store`、日志、临时文件和本机 IDE 私有配置。
+
+## 开源协议
+
+MSSH 使用 MIT 协议开源。协议原文见根目录 `LICENSE`。
 
 ## 数据存储
 
